@@ -1,16 +1,18 @@
 package com.gdx.mythic;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public abstract class Actor {
 	private String actorID;
-	private Texture texture;
+	private Animation<TextureRegion> animation;
 	private float x;
 	private float y;
 	private int range; // movement range
 
-	public Actor(Texture texture_, float x_, float y_, String actorID_) {
-		texture = texture_;
+	public Actor(Animation<TextureRegion> animation_, float x_, float y_, String actorID_) {
+		animation = animation_;
 		x = x_;
 		y = y_;
 		actorID = actorID_;
@@ -37,8 +39,8 @@ public abstract class Actor {
 		y = yval;
 	}
 
-	public Texture getTexture() {
-		return texture;
+	public TextureRegion getTexture(float stateTime) {
+		return animation.getKeyFrame(stateTime, true);
 	}
 
 	public int getRange() {

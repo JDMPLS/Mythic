@@ -31,8 +31,8 @@ public class Mythic extends ApplicationAdapter {
 	private State state;
 
 	//game resources
-	private Texture playerImage;
-	private Texture npcImage;
+	private Animation<TextureRegion> playerAnimation;
+	private Animation<TextureRegion> npcAnimation;
 	private TextureAtlas atlas;
 	private Player player;
 	private NPC npc;
@@ -62,8 +62,15 @@ public class Mythic extends ApplicationAdapter {
 
 	@Override
 	public void create() {
-		playerImage = new Texture(Gdx.files.internal("playerTexture.png"));
-		npcImage = new Texture(Gdx.files.internal("Platina0.png"));
+		TextureRegion player0 = new TextureRegion(new Texture(Gdx.files.internal("Player0.png")));
+		TextureRegion player1 = new TextureRegion(new Texture(Gdx.files.internal("Player1.png")));
+		TextureRegion player2 = new TextureRegion(new Texture(Gdx.files.internal("Player2.png")));
+		TextureRegion npc0 = new TextureRegion(new Texture(Gdx.files.internal("Platina0.png")));
+		TextureRegion npc1 = new TextureRegion(new Texture(Gdx.files.internal("Platina1.png")));
+		TextureRegion[] playerFrames = new TextureRegion[] {player0, player1, player0, player2};
+		TextureRegion[] npcFrames = new TextureRegion[] {npc0, npc1};
+		playerAnimation = new Animation<TextureRegion>(0.5f, playerFrames);
+		npcAnimation = new Animation<TextureRegion>(1f, npcFrames);
 		atlas = new TextureAtlas(Gdx.files.internal("Biomes/Lava/Tileset.atlas"));
 		template = createTemplate(atlas);
 
@@ -97,8 +104,8 @@ public class Mythic extends ApplicationAdapter {
 			}
 		}
 		
-		player = new Player(playerImage, 0, 0, "player");
-		npc = new NPC(npcImage, 1, 1, "npc");
+		player = new Player(playerAnimation, 0, 0, "player");
+		npc = new NPC(npcAnimation, 1, 1, "npc");
 		for(int row = 0; row < MAX_ROWS; row++) {
 			for(int col = 0; col < MAX_COLS; col++) {
 				cells[col][row] = template.get(testBoard[row][col]).clone();
@@ -157,8 +164,8 @@ public class Mythic extends ApplicationAdapter {
 				//batch.draw(template.get(testBoard[row][col]).getTexture(stateTime), (float) col, (float) row, 1, 1);
 			}
 		}
-		batch.draw(player.getTexture(), player.getX(), player.getY(), 1, 1);
-		batch.draw(npc.getTexture(), npc.getX(), npc.getY(), 1, 1);
+		batch.draw(player.getTexture(stateTime), player.getX(), player.getY(), 1, 1);
+		batch.draw(npc.getTexture(stateTime), npc.getX(), npc.getY(), 1, 1);
 		batch.end();
 	}
 
