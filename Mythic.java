@@ -17,6 +17,7 @@ import java.lang.Math;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -36,6 +37,7 @@ public class Mythic extends ApplicationAdapter {
 	private TextureAtlas atlas;
 	private Player player;
 	private NPC npc;
+	private Set<Widget> widgets;
 	private Map<String, Cell> template;
 	private Cell[][] cells = new Cell[MAX_COLS][MAX_ROWS];
 	private String[][] testBoard;
@@ -106,6 +108,7 @@ public class Mythic extends ApplicationAdapter {
 		
 		player = new Player(playerAnimation, 0, 0, "player");
 		npc = new NPC(npcAnimation, 1, 1, "npc");
+		widgets = new HashSet<Widget>();
 		for(int row = 0; row < MAX_ROWS; row++) {
 			for(int col = 0; col < MAX_COLS; col++) {
 				cells[col][row] = template.get(testBoard[row][col]).clone();
@@ -132,7 +135,7 @@ public class Mythic extends ApplicationAdapter {
      	Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
      	camera.update();
-		update(Gdx.graphics.getDeltaTime());
+     	update(Gdx.graphics.getDeltaTime());
 		//camera.position.set(player.getX(), player.getY(), 0);
 		batch.setProjectionMatrix(camera.combined);
 
@@ -166,6 +169,9 @@ public class Mythic extends ApplicationAdapter {
 		}
 		batch.draw(player.getTexture(stateTime), player.getX(), player.getY(), 1, 1);
 		batch.draw(npc.getTexture(stateTime), npc.getX(), npc.getY(), 1, 1);
+		for(Widget w : widgets) {
+			w.draw(batch);
+		}
 		batch.end();
 	}
 
@@ -176,8 +182,23 @@ public class Mythic extends ApplicationAdapter {
 	}
 
 	public void update(float dt) {
+		if(!widgets.isEmpty()) {
+			Set<Widget> temp = new HashSet<Widget>();
+			Iterator<Widget> itr = widgets.iterator();
+			while(itr.hasNext()) {
+				Widget w = itr.next();
+				w.update(dt);
+				if(w.isFinished()) {
+					if(w.hasNext()) {
+						temp.add(w.nextWidget());
+					}
+					itr.remove();
+				}
+			}
+			widgets.addAll(temp);
+		}
 		stateTime += dt;
-		if(state == State.WAITING) {
+		if(state == State.WAITING && widgets.isEmpty()) {
 			if(Gdx.input.isTouched()) {
 				touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 				camera.unproject(touchPos, viewport.getScreenX(), viewport.getScreenY(), viewport.getScreenWidth(), viewport.getScreenHeight());
