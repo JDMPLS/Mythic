@@ -4,12 +4,13 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
-public abstract class Widget {
-	public abstract void update(float deltaTime);
+public class Widget {
 	
 	// coordinates for the widget itself
 	private float x;
 	private float y;
+	private float xShift;
+	private float yShift;
 	// coordinates for the source (user)
 	private float sourceX;
 	private float sourceY;
@@ -20,6 +21,11 @@ public abstract class Widget {
 	private float rotation;
 	private float rotationX;
 	private float rotationY;
+	// rotation for the current movement phase
+	private float phaseRotation; 
+	// duration of the current phase; a second variable is used for display calculations
+	private float duration;
+	private float originalDuration;
 	// controls the creation of the widget
 	private String widgetData;
 	// image data. need to think of a better way to do this for static images, but it works for now
@@ -51,15 +57,41 @@ public abstract class Widget {
 			widgetData = widgetData.substring(1);
 			
 			// grab the x offset
-			x += consumeValue(widgetData, 'x');
-			y += consumeValue(widgetData, 'y');
-			rotation = consumeValue(widgetData, 'r');
-			rotationX = consumeValue(widgetData, 'x');
-			rotationY = consumeValue(widgetData, 'y');
+			x += consumeValue('x');
+			y += consumeValue('y');
+			rotation = consumeValue('r');
+			rotationX = consumeValue('x');
+			rotationY = consumeValue('y');
+			consumeChar(',');
+			refreshWidget();
 	}
 
 	public void draw(SpriteBatch batch) {
-		// draw stuff here
+		batch.draw(animation.getKeyFrame(stateTime), x, y, rotationX, rotationY, 1, 1, 1, 1, rotation);
+	}
+	
+	public void update(float dt) {
+		stateTime += dt;
+		duration -= dt;
+		if(duration <= 0) {
+			refreshWidget();
+		}
+		x += dt * xShift / originalDuration;
+		y += dt * yShift / originalDuration;
+		rotation += phaseRotation * dt / originalDuration;
+		
+	}
+	
+	public void refreshWidget() {
+		if(widgetData == "end") {
+			return;
+		}
+		duration = consumeValue('l');
+		originalDuration = duration;
+		xShift = consumeValue('x');
+		yShift = consumeValue('y');
+		phaseRotation = consumeValue('r');
+		consumeChar(',');
 	}
 	
 	// helper function to get a number from a String. this is returned as a String instead of another type
@@ -71,9 +103,7 @@ public abstract class Widget {
 		// handle the case for decimals
 		if(s.charAt(0) == '.') {
 			result += ".";
-			index++;if(s.charAt(0) == '.') {
-				result += ".";
-			}
+			index++;
 		}
 		while(Character.isDigit(s.charAt(index)))  {
 			result += s.substring(index, index+1);
@@ -87,7 +117,7 @@ public abstract class Widget {
 	// after that character. if not present, throws an exception. 
 	// if present, returns a float. has the side effect of setting the string to the substring
 	// beginning at the end of the number (eg x1.0y1.0 would be set to y1.0)
-	public float consumeValue(String s, char ch) {
+	public float consumeValue(char ch) {
 		boolean negative = false;
 		float rVal = 0.0f;
 		
@@ -115,35 +145,14 @@ public abstract class Widget {
 		return rVal;
 	}
 	
-	public Widget nextWidget() {
-		// returns a new Widget based on the remaining text in widgetData
-		// returns a null object if the text is "end"
-		if(widgetData.length() == 3) {
-			if(widgetData == "end") {
-				return null;
-			}
-			else {
-				// throw exception
-			}
+	public void consumeChar(char ch) {
+		if(widgetData.charAt(0) == ch) {
+			widgetData = widgetData.substring(1);
 		}
-		else {
-			switch(widgetData.charAt(0)) {
-			case 'w':
-				//return new WaitWidget();
-			default: 
-				// throw exception?
-			}
-		}
-		return null;
 	}
 
 	public boolean isFinished() {
-		// TODO Auto-generated method stub
-		return false;
+		return widgetData == "end";
 	}
 
-	public boolean hasNext() {
-		// TODO Auto-generated method stub
-		return false;
-	}
 }

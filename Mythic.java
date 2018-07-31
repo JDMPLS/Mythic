@@ -3,6 +3,7 @@ package com.gdx.mythic;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -34,6 +35,7 @@ public class Mythic extends ApplicationAdapter {
 	//game resources
 	private Animation<TextureRegion> playerAnimation;
 	private Animation<TextureRegion> npcAnimation;
+	private Animation<TextureRegion> swordAnimation;
 	private TextureAtlas atlas;
 	private Player player;
 	private NPC npc;
@@ -61,6 +63,10 @@ public class Mythic extends ApplicationAdapter {
 	Set<Vector2> movementRange;
 	
 	private float stateTime;
+	
+	// debug variables used for testing and quick implementation
+	private float sinceLastPress;
+	private static final float PRESSTIME = 2.0f;
 
 	@Override
 	public void create() {
@@ -69,10 +75,13 @@ public class Mythic extends ApplicationAdapter {
 		TextureRegion player2 = new TextureRegion(new Texture(Gdx.files.internal("Player2.png")));
 		TextureRegion npc0 = new TextureRegion(new Texture(Gdx.files.internal("Platina0.png")));
 		TextureRegion npc1 = new TextureRegion(new Texture(Gdx.files.internal("Platina1.png")));
+		TextureRegion sword0 = new TextureRegion(new Texture(Gdx.files.internal("Sword.png")));
 		TextureRegion[] playerFrames = new TextureRegion[] {player0, player1, player0, player2};
 		TextureRegion[] npcFrames = new TextureRegion[] {npc0, npc1};
+		TextureRegion[] swordFrames = new TextureRegion[] {sword0};
 		playerAnimation = new Animation<TextureRegion>(0.5f, playerFrames);
 		npcAnimation = new Animation<TextureRegion>(1f, npcFrames);
+		swordAnimation = new Animation<TextureRegion>(60f, swordFrames);
 		atlas = new TextureAtlas(Gdx.files.internal("Biomes/Lava/Tileset.atlas"));
 		template = createTemplate(atlas);
 
@@ -127,6 +136,9 @@ public class Mythic extends ApplicationAdapter {
 		yOrigin = 0;
 		movementRange = new HashSet<Vector2>();
 		stateTime = 0;
+		
+		// initializing debug variables
+		sinceLastPress = 0;
 	}
 
 	@Override
@@ -183,21 +195,28 @@ public class Mythic extends ApplicationAdapter {
 
 	public void update(float dt) {
 		if(!widgets.isEmpty()) {
-			Set<Widget> temp = new HashSet<Widget>();
 			Iterator<Widget> itr = widgets.iterator();
 			while(itr.hasNext()) {
 				Widget w = itr.next();
 				w.update(dt);
 				if(w.isFinished()) {
-					if(w.hasNext()) {
-						temp.add(w.nextWidget());
-					}
 					itr.remove();
 				}
 			}
-			widgets.addAll(temp);
 		}
 		stateTime += dt;
+		if(sinceLastPress == 0) {
+			if(Gdx.input.isKeyPressed(Keys.A)) {
+				String temp = "tx-.25y.25r135x0y0,l.5x0y0r-180,l.5x0y0r0,end";
+				widgets.add(new Widget(temp, player.getX(), player.getY(), player.getX()-1,player.getY(),swordAnimation));
+				sinceLastPress = PRESSTIME;
+			}
+		}
+		else {
+			sinceLastPress -= dt;
+			if(sinceLastPress <= 0)
+				sinceLastPress = 0;
+		}
 		if(state == State.WAITING && widgets.isEmpty()) {
 			if(Gdx.input.isTouched()) {
 				touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
