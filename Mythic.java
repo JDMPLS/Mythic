@@ -66,7 +66,7 @@ public class Mythic extends ApplicationAdapter {
 	
 	// debug variables used for testing and quick implementation
 	private float sinceLastPress;
-	private static final float PRESSTIME = 2.0f;
+	private static final float PRESSTIME = .75f;
 
 	@Override
 	public void create() {
@@ -75,7 +75,7 @@ public class Mythic extends ApplicationAdapter {
 		TextureRegion player2 = new TextureRegion(new Texture(Gdx.files.internal("Player2.png")));
 		TextureRegion npc0 = new TextureRegion(new Texture(Gdx.files.internal("Platina0.png")));
 		TextureRegion npc1 = new TextureRegion(new Texture(Gdx.files.internal("Platina1.png")));
-		TextureRegion sword0 = new TextureRegion(new Texture(Gdx.files.internal("Sword.png")));
+		TextureRegion sword0 = new TextureRegion(new Texture(Gdx.files.internal("Sword1.png")));
 		TextureRegion[] playerFrames = new TextureRegion[] {player0, player1, player0, player2};
 		TextureRegion[] npcFrames = new TextureRegion[] {npc0, npc1};
 		TextureRegion[] swordFrames = new TextureRegion[] {sword0};
@@ -206,9 +206,21 @@ public class Mythic extends ApplicationAdapter {
 		}
 		stateTime += dt;
 		if(sinceLastPress == 0) {
+			String temp = "sx0y0rtx.5y.5,l1xtytr0,l.5x0y0r0,end";
 			if(Gdx.input.isKeyPressed(Keys.A)) {
-				String temp = "tx-.25y.25r135x0y0,l.5x0y0r-180,l.5x0y0r0,end";
-				widgets.add(new Widget(temp, player.getX(), player.getY(), player.getX()-1,player.getY(),swordAnimation));
+				widgets.add(new Widget(temp, player.getX(), player.getY(), npc.getX(),npc.getY(),swordAnimation));
+				sinceLastPress = PRESSTIME;
+			}
+			else if(Gdx.input.isKeyPressed(Keys.S)) {
+				widgets.add(new Widget(temp, player.getX(), player.getY(), player.getX(),player.getY()-1,swordAnimation));
+				sinceLastPress = PRESSTIME;
+			}
+			else if(Gdx.input.isKeyPressed(Keys.D)) {
+				widgets.add(new Widget(temp, player.getX(), player.getY(), player.getX()+1,player.getY(),swordAnimation));
+				sinceLastPress = PRESSTIME;
+			}
+			else if(Gdx.input.isKeyPressed(Keys.F)) {
+				widgets.add(new Widget(temp, player.getX(), player.getY(), player.getX(),player.getY()+1,swordAnimation));
 				sinceLastPress = PRESSTIME;
 			}
 		}
@@ -217,7 +229,7 @@ public class Mythic extends ApplicationAdapter {
 			if(sinceLastPress <= 0)
 				sinceLastPress = 0;
 		}
-		if(state == State.WAITING && widgets.isEmpty()) {
+		if(state == State.WAITING) {
 			if(Gdx.input.isTouched()) {
 				touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 				camera.unproject(touchPos, viewport.getScreenX(), viewport.getScreenY(), viewport.getScreenWidth(), viewport.getScreenHeight());
